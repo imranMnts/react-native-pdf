@@ -21,12 +21,12 @@ import {
 import { ProgressBar } from '@react-native-community/progress-bar-android'
 import { ProgressView } from '@react-native-community/progress-view'
 
-let RNFetchBlob;
+let ReactNativeBlobUtil;
 try {
-    RNFetchBlob = require('rn-fetch-blob').default;
+    ReactNativeBlobUtil = require('react-native-blob-util').default;
 } catch(e) {
-    // For Windows, when not using rn-fetch-blob with Windows support.
-    RNFetchBlob = {
+    // For Windows, when not using react-native-blob-util with Windows support.
+    ReactNativeBlobUtil = {
         fs : {
             dirs: {
                 CacheDir: ''
@@ -184,10 +184,10 @@ export default class Pdf extends Component {
             this.setState({isDownloaded: false, path: '', progress: 0});
         }
         const filename = source.cacheFileName || SHA1(uri) + '.pdf';
-        const cacheFile = RNFetchBlob.fs.dirs.CacheDir + '/' + filename;
+        const cacheFile = ReactNativeBlobUtil.fs.dirs.CacheDir + '/' + filename;
 
         if (source.cache) {
-            RNFetchBlob.fs
+            ReactNativeBlobUtil.fs
                 .stat(cacheFile)
                 .then(stats => {
                     if (!Boolean(source.expiration) || (source.expiration * 1000 + stats.lastModified) > (new Date().getTime())) {
@@ -219,7 +219,7 @@ export default class Pdf extends Component {
                 const isBase64 = !!(uri && uri.match(/^data:application\/pdf;base64/));
 
                 const filename = source.cacheFileName || SHA1(uri) + '.pdf';
-                const cacheFile = RNFetchBlob.fs.dirs.CacheDir + '/' + filename;
+                const cacheFile = ReactNativeBlobUtil.fs.dirs.CacheDir + '/' + filename;
 
                 // delete old cache file
                 this._unlinkFile(cacheFile);
@@ -227,7 +227,7 @@ export default class Pdf extends Component {
                 if (isNetwork) {
                     this._downloadFile(source, cacheFile);
                 } else if (isAsset) {
-                    RNFetchBlob.fs
+                    ReactNativeBlobUtil.fs
                         .cp(uri, cacheFile)
                         .then(() => {
                             if (this._mounted) {
@@ -240,7 +240,7 @@ export default class Pdf extends Component {
                         })
                 } else if (isBase64) {
                     let data = uri.replace(/data:application\/pdf;base64,/i, '');
-                    RNFetchBlob.fs
+                    ReactNativeBlobUtil.fs
                         .writeFile(cacheFile, data, 'base64')
                         .then(() => {
                             if (this._mounted) {
@@ -280,7 +280,7 @@ export default class Pdf extends Component {
         const tempCacheFile = cacheFile + '.tmp';
         this._unlinkFile(tempCacheFile);
 
-        this.lastRNBFTask = RNFetchBlob.config({
+        this.lastRNBFTask = ReactNativeBlobUtil.config({
             // response data will be saved to this path if it has access right.
             path: tempCacheFile,
             trusty: this.props.trustAllCerts,
@@ -309,7 +309,7 @@ export default class Pdf extends Component {
                     let actualContentLength;
 
                     try {
-                        const fileStats = await RNFetchBlob.fs.stat(res.path());
+                        const fileStats = await ReactNativeBlobUtil.fs.stat(res.path());
 
                         if (!fileStats || !fileStats.size) {
                             throw new Error("FileNotFound:" + source.uri);
@@ -326,7 +326,7 @@ export default class Pdf extends Component {
                 }
 
                 this._unlinkFile(cacheFile);
-                RNFetchBlob.fs
+                ReactNativeBlobUtil.fs
                     .cp(tempCacheFile, cacheFile)
                     .then(() => {
                         if (this._mounted) {
@@ -348,7 +348,7 @@ export default class Pdf extends Component {
 
     _unlinkFile = async (file) => {
         try {
-            await RNFetchBlob.fs.unlink(file);
+            await ReactNativeBlobUtil.fs.unlink(file);
         } catch (e) {
 
         }
